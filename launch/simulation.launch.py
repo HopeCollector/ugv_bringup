@@ -193,6 +193,22 @@ def generate_launch_description():
         ],
     )
 
+    node_frame_map = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        arguments=[
+            "--frame-id",
+            "map",
+            "--child-frame-id",
+            "odom",
+        ],
+        parameters=[
+            {
+                "qos_overrides./tf_static.publisher.durability": "transient_local",
+            }
+        ],
+    )
+
     nodes_spawn_boxes = RegisterEventHandler(
         OnProcessExit(
             target_action=node_spawn_vehicle,
@@ -217,6 +233,7 @@ def generate_launch_description():
         node_spawn_vehicle,
         node_gz_bridge,
         node_spawn_controller,
+        node_frame_map,
         nodes_spawn_boxes,
     ]
 
