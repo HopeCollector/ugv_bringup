@@ -130,6 +130,10 @@ def generate_launch_description():
 
     gz_bdg_config_file = PathJoinSubstitution([model_base_dir, "gz_bdg.yml"])
 
+    odom_config_file = PathJoinSubstitution(
+        [FindPackageShare(CUR_PKG_NAME), "launch/odom.yml"]
+    )
+
     # 发布机器人描述
     node_robot_state_publisher = Node(
         package="robot_state_publisher",
@@ -193,6 +197,17 @@ def generate_launch_description():
         ],
     )
 
+    node_odom = Node(
+        package="robot_localization",
+        executable="ekf_node",
+        name="odom_filter_node",
+        output="screen",
+        parameters=[
+            odom_config_file,
+            {"use_sim_time": True},
+        ],
+    )
+
     node_frame_map = Node(
         package="tf2_ros",
         executable="static_transform_publisher",
@@ -218,21 +233,13 @@ def generate_launch_description():
 
     nodes = [
         LogInfo(msg=["Current World Seed: ", LaunchConfiguration("world_seed")]),
-        LogInfo(
-            msg=[
-                PathJoinSubstitution(
-                    [
-                        FindPackageShare(CUR_PKG_NAME),
-                        "world/fence.sdf",
-                    ]
-                )
-            ]
-        ),
+        LogInfo(msg=[odom_config_file]),
         node_robot_state_publisher,
         node_gazebo,
         node_spawn_vehicle,
         node_gz_bridge,
         node_spawn_controller,
+        node_odom,
         node_frame_map,
         nodes_spawn_boxes,
     ]
